@@ -45,7 +45,7 @@ plugins {
 
 ### Standalone
 
-Download the latest jar file from [here](https://repo.screamingsandals.org/#/releases/org/screamingsandals/nms/nms-mapper-standalone) and save it in your project.  
+Download the latest jar file from [here](https://repo.screamingsandals.org/releases/org/screamingsandals/nms/nms-mapper-standalone/LATEST_VERSION_HERE/nms-mapper-standalone-LATEST_VERSION_HERE.jar) and save it in your project.  
 Create a groovy file (example: `nms.groovy`). Contents of this file will be similar like when using Gradle, however this time only nmsGen section and its content is present.   
 Run the generation using:  
 `java -jar nms-mapper-standalone.jar -b nms.groovy`
