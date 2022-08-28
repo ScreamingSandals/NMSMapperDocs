@@ -52,44 +52,87 @@ Run the generation using:
 
 ## Examples
 ### Basic setup
-```groovy
-/* First add a new source set. Don't use your main source set for generated stuff. */
-sourceSets.main.java.srcDirs = ['src/generated/java', 'src/main/java']
 
-/* All other things will be set inside the nmsGen method. */
-nmsGen {
-    basePackage = "com.example.nms.accessors" // All generated classes will be in this package.
-    sourceSet = "src/generated/java" // All generated classes will be part of this source set.
-    minMinecraftVersion = "1.8.8" // Optional, default value is 1.9.4
-    maxMinecraftVersion = "1.18.2" // Optional, default value is the last known version
+=== "Groovy DSL"
+    ```groovy
+    /* First add a new source set. Don't use your main source set for generated stuff. */
+    sourceSets.main.java {
+        srcDir 'src/generated/java' // adds new directory to the source set
+    }
 
-    /*
-     * This means that the folder will be cleared before generation. 
-     *
-     * If this value is false, old no longer used classes won't be removed.
-     */
-    cleanOnRebuild = true
-}
-```
+    /* All other things will be set inside the nmsGen method. */
+    nmsGen {
+        basePackage = "com.example.nms.accessors" // All generated classes will be in this package.
+        sourceSet = "src/generated/java" // All generated classes will be part of this source set.
+        minMinecraftVersion = "1.8.8" // Optional, default value is 1.9.4
+        maxMinecraftVersion = "1.18.2" // Optional, default value is the last known version
+        nullableAnnotation = "org.jetbrains.annotations.Nullable" // Optional, nullable return types or parameters will be annotated with this if present
+        notNullAnnotation = "org.jetbrains.annotations.NotNull" // (not used yet) Optional, not-null return type or parameters will be annotated with this if present
+        addInformationJavadoc = true // Optional, default value is true
+        mapForPlatforms = ["searge", "spigot"] // Optional, default value is ["searge", "spigot"]
+
+        /*
+         * This means that the folder will be cleared before generation. 
+         *
+         * If this value is false, old no longer used classes won't be removed.
+         */
+        cleanOnRebuild = true
+    }
+    ```
+=== "Kotlin DSL"
+    ```kotlin
+    /* First add a new source set. Don't use your main source set for generated stuff. */
+    sourceSets["main"].java {
+        srcDir("src/generated/java") // adds new directory to the source set
+    }
+
+    /* All other things will be set inside the nmsGen method. */
+    nmsGen {
+        basePackage = "com.example.nms.accessors" // All generated classes will be in this package.
+        sourceSet = "src/generated/java" // All generated classes will be part of this source set.
+        minMinecraftVersion = "1.8.8" // Optional, default value is 1.9.4
+        maxMinecraftVersion = "1.18.2" // Optional, default value is the last known version
+        nullableAnnotation = "org.jetbrains.annotations.Nullable" // Optional, nullable return types or parameters will be annotated with this if present
+        notNullAnnotation = "org.jetbrains.annotations.NotNull" // (not used yet) Optional, not-null return type or parameters will be annotated with this if present
+        isAddInformationJavadoc = true // Optional, default value is true
+        mapForPlatforms = listOf("searge", "spigot") // Optional, default value is listOf("searge", "spigot")
+
+        /*
+         * This means that the folder will be cleared before generation. 
+         *
+         * If this value is false, old no longer used classes won't be removed.
+         */
+        isCleanOnRebuild = true
+    }
+    ```
 
 ### Defining objects for generation
 We want to access the `net.minecraft.core.Rotations` class in our plugin. The following method generates a new class, named `RotationsAccessor`, which you can use to retrieve the type.
-```groovy
-nmsGen {
-    /* Setup, see chapter before */
+=== "Groovy DSL"    
+    ```groovy
+    nmsGen {
+        /* Setup, see the chapter before */
+    
+        reqClass('net.minecraft.core.Rotations')
+    }
+    ```
+=== "Kotlin DSL"    
+    ```kotlin
+    nmsGen {
+        /* Setup, see the chapter before */
 
-    reqClass('net.minecraft.core.Rotations')
-}
-```
-The generated code looks like this:
+        reqClass("net.minecraft.core.Rotations")
+    }
+    ```
+The generated code looks like this (without javadocs):
 ```java
 public class RotationsAccessor {
     public static Class<?> getType() {
         return AccessorUtils.getType(RotationsAccessor.class, mapper -> {
-            mapper.map("spigot", "1.9.4", "net.minecraft.server.${V}.Vector3f");
-            mapper.map("spigot", "1.17", "net.minecraft.core.Vector3f");
-            mapper.map("mcp", "1.9.4", "net.minecraft.util.math.Rotations");
-            mapper.map("mcp", "1.17", "net.minecraft.src.C_4709_");
+            mapper.map("SEARGE", "1.9.4", "net.minecraft.util.math.Rotations");
+            mapper.map("SEARGE", "1.17", "net.minecraft.src.C_4709_");
+            mapper.map("SPIGOT", "1.9.4", "net.minecraft.server.${V}.Vector3f");
+            mapper.map("SPIGOT", "1.17", "net.minecraft.core.Vector3f");
         });
     }  
 }
@@ -97,21 +140,38 @@ public class RotationsAccessor {
 We can see that we got a new static method, named `getType()`, which returns a class based on the version and platform (Spigot and Forge is supported).
 
 Okay, we have a class. But classes are not all, we also need to access some fields, methods or even constructors.
-```groovy
-nmsGen {
-    /* Setup, see chapter before */
-
-    reqClass('net.minecraft.core.Rotations') {
-        reqConstructor(float, float, float)
-        reqField('x')
-        reqField('y')
-        reqField('z')
-        reqMethod('getX')
-        reqMethod('getY')
-        reqMethod('getZ')
+=== "Groovy DSL"
+    ```groovy
+    nmsGen {
+        /* Setup, see the chapter before */
+    
+        reqClass('net.minecraft.core.Rotations') {
+            reqConstructor(float, float, float)
+            reqField('x')
+            reqField('y')
+            reqField('z')
+            reqMethod('getX')
+            reqMethod('getY')
+            reqMethod('getZ')
+        }
     }
-}
-```
+    ```
+=== "Kotlin DSL"
+    ```kotlin
+    nmsGen {
+        /* Setup, see the chapter before */
+
+        reqClass("net.minecraft.core.Rotations") {
+            reqConstructor("float", "float", "float")
+            reqField("x")
+            reqField("y")
+            reqField("z")
+            reqMethod("getX")
+            reqMethod("getY")
+            reqMethod("getZ")
+        }
+    }
+    ```
 
 This will generate access methods for one constructor, three fields and three methods.
 ```java
@@ -150,37 +210,67 @@ A generated access method for a method will always be called `getMethod<Name><In
     If a class, a field, a method or a constructor is not found, `null` is returned.
 
 Maybe you are asking: How to define parameters to methods? It's actually pretty easy, and the same applies to constructors:
-```groovy
-nmsGen {
-    /* Setup, see chapter before */
-
-    var Level = reqClass('net.minecraft.world.level.Level')
-
-    reqClass('net.minecraft.world.entity.decoration.ArmorStand') {
-        reqConstructor(Level, double, double, double)
-        reqMethod('setSmall', boolean)
+=== "Groovy DSL"
+    ```groovy
+    nmsGen {
+        /* Setup, see the chapter before */
+    
+        var Level = reqClass('net.minecraft.world.level.Level')
+    
+        reqClass('net.minecraft.world.entity.decoration.ArmorStand') {
+            reqConstructor(Level, double, double, double)
+            reqMethod('setSmall', boolean)
+        }
     }
-}
-```
-Parameters can be classes (e.g. `String.class`, in groovy you don't have to specify the .class suffix), strings (`java.lang.String`) or an another requested class (in this example it's Level).
+    ```
+=== "Kotlin DSL"
+    ```kotlin
+    nmsGen {
+        /* Setup, see the chapter before */
+
+        val Level = reqClass("net.minecraft.world.level.Level")
+    
+        reqClass("net.minecraft.world.entity.decoration.ArmorStand") {
+            reqConstructor(Level, "double", "double", "double")
+            reqMethod("setSmall", "boolean")
+        }
+    }
+    ```
+
+Parameters can be classes (e.g. `String.class`, in Groovy you don't have to specify the .class suffix), strings (`java.lang.String`) or a requested class (in this example it's Level). 
+You can also use Kotlin's class reference (e.g. `String::class`), however for primitives use strings unless the required method/constructor has this parameter boxed! 
 
 !!! tip "Arrays of requested classes"
 
     You can create an array of a requested class by calling `.array()` on it, useful for defining parameters of a NMS type.
 
-For requested classes you can also use so-called context. That means you don't have to save it to variable, but you can use string prepended with `@`
-```groovy
-nmsGen {
-    /* Setup, see chapter before */
-
-    reqClass('net.minecraft.world.level.Level')
-
-    reqClass('net.minecraft.world.entity.decoration.ArmorStand') {
-        reqConstructor('@Level', double, double, double)
-        reqMethod('setSmall', boolean)
+For requested classes you can also use so-called context. That means you don't have to save it to a variable, but you can use a string prepended with `@`
+=== "Groovy DSL"
+    ```groovy
+    nmsGen {
+        /* Setup, see the chapter before */
+    
+        reqClass('net.minecraft.world.level.Level')
+    
+        reqClass('net.minecraft.world.entity.decoration.ArmorStand') {
+            reqConstructor('@Level', double, double, double)
+            reqMethod('setSmall', boolean)
+        }
     }
-}
-```
+    ```
+=== "Kotlin DSL"
+    ```kotlin
+    nmsGen {
+        /* Setup, see the chapter before */
+
+        reqClass("net.minecraft.world.level.Level")
+    
+        reqClass("net.minecraft.world.entity.decoration.ArmorStand") {
+            reqConstructor("@Level", "double", "double", "double")
+            reqMethod("setSmall", "boolean")
+        }
+    }
+    ```
 
 !!! tip "Arrays of requested classes in context"
 
@@ -188,15 +278,26 @@ nmsGen {
 
 
 If the class is an enum and we want to retrieve its enum value, we can simply use the `reqEnumField` method.
-```groovy
-nmsGen {
-    /* Setup, see chapter before */
-
-    reqClass('net.minecraft.network.protocol.game.ServerboundClientCommandPacket$Action') {
-        reqEnumField('PERFORM_RESPAWN')
+=== "Groovy DSL"
+    ```groovy
+    nmsGen {
+        /* Setup, see the chapter before */
+    
+        reqClass('net.minecraft.network.protocol.game.ServerboundClientCommandPacket$Action') {
+            reqEnumField('PERFORM_RESPAWN')
+        }
     }
-}
-```
+    ```
+=== "Kotlin DSL"
+    ```kotlin
+    nmsGen {
+        /* Setup, see the chapter before */
+
+        reqClass("net.minecraft.network.protocol.game.ServerboundClientCommandPacket$Action") {
+            reqEnumField("PERFORM_RESPAWN")
+        }
+    }
+    ```
 In this case, the `getField` method will be generated again, however it will return directly the `Object` instead of `Field`.
 ```java
 public static Object getFieldPERFORM_RESPAWN() {
@@ -208,8 +309,3 @@ public static Object getFieldPERFORM_RESPAWN() {
 ### Using alternative mappings/custom versions
 If you want to use alternative mappings or specific versions for generating accessors, prefix the build.gradle declaration with `<mappingtype>:` and suffix it with `:<version>`.  
 Available mapping types are `mojang, searge, spigot, obfuscated`. Mojang mappings are used by default (if available).
-
-### Generating configurations for new versions
-```bash
-./gradlew generateNmsConfig -PminecraftVersion=<version>
-```
